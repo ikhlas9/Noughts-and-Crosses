@@ -1,134 +1,105 @@
-board = [' ' for x in range(10)]
+import random
+import time
 
-def insertLetter(letter,pos):
-    board[pos] = letter
+# Initialize the game board
+def init_board():
+    return [" " for _ in range(9)]
 
-def spaceIsFree(pos):
-    return board[pos] == ' '
+# Print the game board
+def print_board(board):
+    print("-------------")
+    for i in range(3):
+        print(f"| {board[3*i]} | {board[3*i + 1]} | {board[3*i + 2]} |")
+        print("-------------")
+    print("\n\n")
 
-def printBoard(board):
-    print('   |   |   ')
-    print(' ' + board[1] + ' | ' + board[2] + ' | ' + board[3])
-    print('   |   |   ')
-    print('------------')
-    print('   |   |   ')
-    print(' ' + board[4] + ' | ' + board[5] + ' | ' + board[6])
-    print('   |   |   ')
-    print('------------')
-    print('   |   |   ')
-    print(' ' + board[7] + ' | ' + board[8] + ' | ' + board[9])
-    print('   |   |   ')
+# Print position guide for players
+def print_position_guide():
+    print("Position guide:")
+    print("-------------")
+    print("| 1 | 2 | 3 |")
+    print("-------------")
+    print("| 4 | 5 | 6 |")
+    print("-------------")
+    print("| 7 | 8 | 9 |")
+    print("-------------\n\n")
 
-def isBoardFull(board):
-    if board.count(' ') > 1:
-        return False
-    else:
-        return True
+# Check for a win
+def check_win(board, player):
+    win_combinations = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Columns
+        [0, 4, 8], [2, 4, 6]              # Diagonals
+    ]
+    return any(all(board[pos] == player for pos in combo) for combo in win_combinations)
 
-def IsWinner(b,l):
-    return(
-    (b[1] == l and b[2] == l and b[3] == l) or
-    (b[4] == l and b[5] == l and b[6] == l) or
-    (b[7] == l and b[8] == l and b[9] == l) or
-    (b[1] == l and b[4] == l and b[7] == l) or
-    (b[2] == l and b[5] == l and b[8] == l) or
-    (b[3] == l and b[6] == l and b[9] == l) or
-    (b[1] == l and b[5] == l and b[9] == l) or
-    (b[3] == l and b[5] == l and b[7] == l)
-    )
+# Check for a draw
+def check_draw(board):
+    return all(cell != " " for cell in board)
 
-def playerMove():
-    run = True
-    while run:
-        move = input("please select a position to enter the X between 1 to 9: ")
+# Player move
+def player_move(board):
+    while True:
         try:
-            move = int(move)
-            if move > 0 and move < 10:
-                if spaceIsFree(move):
-                    run = False
-                    insertLetter('X', move)
-                else:
-                    print('Sorry, this space is occupied')
+            move = int(input("Choose your position (1-9): ")) - 1
+            if board[move] == " ":
+                board[move] = "X"
+                break
             else:
-                print('please type a number between 1 and 9')
-        
-        except:
-            print('Please type a number')
+                print("That position is already taken. Try again!")
+        except (ValueError, IndexError):
+            print("Invalid input. Please enter a number between 1 and 9.")
 
-def computerMove():
-    possibleMoves = [ x for x, letter in enumerate(board) if letter == ' ' and x != 0]
-    move = 0
-
-    for let in ['O', 'X']:
-        for i in possibleMoves:
-            boardcopy = board[:]
-            boardcopy[i] = let
-            if IsWinner(boardcopy, let):
-                move = i
-                return move
-
-    cornersOpen = []
-    for i in possibleMoves:
-        if i in [1, 3, 7, 9]:
-            cornersOpen.append(i)
-
-    if len(cornersOpen) > 0:
-        move = selectRandom(cornersOpen)
-        return move
-
-    if 5 in possibleMoves:
-        move = 5
-        return move
-
-    edgesOpen = []
-    for i in possibleMoves:
-        if i in [2, 4, 6, 8]:
-            edgesOpen.append(i)
-
-    if len(edgesOpen) > 0:
-        move = selectRandom(edgesOpen)
-        return move
-
-def selectRandom(li):
-    import random
-    ln = len(li)
-    r = random.randrange(0, ln)
-    return li[r]
-
-def main():
-    print("Welcome to the game!")
-    printBoard(board)
-
-    while not(isBoardFull(board)):
-        if not(IsWinner(board, 'O')):
-            playerMove()
-            printBoard(board)
-        else:
-            print("sorry you loose!")
+# Computer move
+def computer_move(board):
+    print("Computer is thinking...")
+    time.sleep(1)  # Pause so its clear on the screen
+    while True:
+        move = random.randint(0, 8)
+        if board[move] == " ":
+            board[move] = "O"
+            print(f"Computer placed an 'O' at position {move + 1}.\n")
             break
 
-        if not(IsWinner(board, 'X')):
-            move = computerMove()
-            if move == 0:
-                print(" ")
-            else:
-                insertLetter('O', move)
-                print('computer placed an o on position', move, ':')
-                printBoard(board)
-        else:
-            print("you win!")
+# Main game 
+def play_game():
+    board = init_board()
+    print("Welcome to Noughts and Crosses!\n")
+    print_position_guide()
+    print_board(board)
+
+    while True:
+        # Player's turn
+        print("Your turn:")
+        player_move(board)
+        print_board(board)
+
+        if check_win(board, "X"):
+            print("🎉 Congratulations! You win!\n")
+            break
+        if check_draw(board):
+            print("It's a draw!\n")
             break
 
+        # Computer's turn
+        print("Computer's turn:")
+        computer_move(board)
+        print_board(board)
 
+        if check_win(board, "O"):
+            print("Computer wins! Better luck next time.\n")
+            break
+        if check_draw(board):
+            print("It's a draw!\n")
+            break
 
-    if isBoardFull(board):
-        print("Tie game")
-
-while True:
-    x = input("Do you want to play again? (y/n)")
-    if x.lower() == 'y':
-        board = [' ' for x in range(10)]
-        print('-------------------')
-        main()
+    # Ask if the player wants to play again
+    play_again = input("Do you want to play again? (yes/no): ").strip().lower()
+    if play_again in ("yes", "y"):
+        play_game()
     else:
-        break
+        print("Thanks for playing! Goodbye 👋")
+
+# Start the game
+if __name__ == "__main__":
+    play_game()
